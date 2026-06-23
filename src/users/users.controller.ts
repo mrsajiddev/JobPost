@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -26,8 +21,17 @@ export class UsersController {
     const userProfile = await this.userService.getProfile(userId);
 
     return {
+      status: 'success',
+      status_code: 200,
       message: 'Profile fetched successfully',
-      user: userProfile,
+      data: {
+        user: {
+          id: userProfile?.id,
+          full_name: userProfile?.full_name,
+          email: userProfile?.email,
+          role: userProfile?.role,
+        },
+      },
     };
   }
 }
