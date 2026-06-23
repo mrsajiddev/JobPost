@@ -13,11 +13,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  generateToken(user: Pick<User, 'id' | 'email' | 'role'>): { access_token: string } {
+  generateToken(user: Pick<User, 'id' | 'email' | 'role'>): {
+    accessToken: string;
+  } {
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload),
     };
   }
 
@@ -29,9 +31,22 @@ export class AuthService {
       password: hash,
     });
 
+    const accessToken = this.generateToken(createdUser.user);
+
     return {
-      ...createdUser,
-      ...this.generateToken(createdUser.user),
+      status: 'success',
+      status_code: 201,
+      message: createdUser.message,
+      data: {
+        user: {
+          id: createdUser.user?.id,
+          full_name: createdUser.user?.full_name,
+          email: createdUser.user?.email,
+          role: createdUser.user?.role,
+        },
+        ...accessToken,
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      },
     };
   }
 
@@ -47,18 +62,21 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const access_token = this.generateToken(user);
+    const accessToken = this.generateToken(user);
     return {
+      status: 'success',
+      status_code: 200,
       message: 'Login successful',
-      user: {
-        id: user?.id,
-        full_name: user?.full_name,
-        email: user?.email,
-        phone_no: user?.phone_no,
-        role: user?.role,
-        is_active: user?.is_active,
+      data: {
+        user: {
+          id: user?.id,
+          full_name: user?.full_name,
+          email: user?.email,
+          role: user?.role,
+        },
+        ...accessToken,
+        expiresIn: process.env.JWT_EXPIRES_IN,
       },
-      ...access_token,
     };
   }
 }
